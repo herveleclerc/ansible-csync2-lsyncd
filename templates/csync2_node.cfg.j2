@@ -1,0 +1,17 @@
+nossl * *;
+group {{ inventory_hostname }}
+{
+  {% for host in groups['front'] -%}
+  {% if host == inventory_hostname -%}
+  host {{ host }};
+  {% else -%}
+  host ({{ host }});
+  {% endif -%}
+  {% endfor -%}
+  key /etc/csync2.key;
+  {% for directory in lsyncd_directories -%}
+  include {{ directory }};
+  {% endfor -%}
+  exclude *~ .*;
+  auto none;
+}

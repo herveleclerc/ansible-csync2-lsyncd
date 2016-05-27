@@ -1,0 +1,13 @@
+nossl * *;
+group web
+{
+  {% for host in groups['front'] -%}
+  host {{ host }};
+  {% endfor -%}
+  key /etc/csync2.key;
+  {% for directory in lsyncd_directories -%}
+  include {{ directory }};
+  {% endfor -%}
+  exclude *~ .*;
+  auto none;
+}

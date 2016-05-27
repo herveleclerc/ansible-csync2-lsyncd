@@ -1,0 +1,91 @@
+---
+
+- name: install csync2
+  apt:
+    name: csync2
+    state: installed 
+
+- name: Install lsyncd
+  apt:
+    name: lsyncd
+    state: installed
+
+- name: Check if key is generated
+  stat: path="{{ csync2_key_path }}"
+  register: keyfile
+
+- name: Generate key
+  command: /usr/sbin/csync2 -k "{{ csync2_key_path }}"
+  notify: restart csync2
+  when: not keyfile.stat.exists and "{{ inventory_hostname }}" == "{{ groups['front'][0] }}"
+    
+- name: Create lsync paths
+  file:
+    dest: "{{ item }}"
+    state: directory
+  with_items:
+    - /etc/lsyncd/
+    - /var/log/lsyncd
+
+- name: Place lsync config
+  template:
+    src: lsyncd.conf.j2
+    dest: /etc/lsyncd/lsyncd.conf.lua
+    force: yes
+  notify: restart lsyncd
+  
+- name: Place csync2 global config
+  template:
+    src: csync2.cfg.j2
+    dest: /etc/csync2.cfg
+    force: yes
+  notify: restart csync2
+
+
+- name: Place csync2 nodes config
+  template:
+    src: csync2_node.cfg.j2
+    dest: "/etc/csync2_{{ inventory_hostname }}.cfg"
+    force: yes
+  notify: restart csync2 
+
+- name: Get all conf file files 
+  find: 
+    paths: "/etc" 
+    patterns: "csync2_*,csync2.key" 
+    file_type: file
+  register: cfiles
+  
+- name: Fetch all conf file
+  fetch: 
+    src: "{{ item.path }}"
+    dest: tmp/ 
+    flat: yes
+  with_items: "{{ cfiles.files }}"
+  
+ 
+- name: Copy conf on all nodes
+  copy: src={{ item }} dest=/etc/
+  with_fileglob:
+    - tmp/csync2_*
+  notify: 
+    - restart csync2
+    - restart lsyncd
+
+- name: Copy key on all nodes not 0
+  copy: src=tmp/csync2.key dest=/etc/
+  when: not "{{ inventory_hostname }}" == "{{ groups['front'][0] }}"
+  notify: 
+    - restart csync2
+    - restart lsyncd
+
+- name: Adjust the maximum amount of inotify watches. If needed
+  lineinfile:
+    backup: yes
+    dest: /etc/sysctl.conf
+    line: "fs.inotify.max_user_watches={{ lsyncd_max_user_watches }}"
+    regexp: "^fs.inotify.max_user_watches="
+    state: present
+  notify: reload sysctl
+  when: lsyncd_max_user_watches is defined
+    
