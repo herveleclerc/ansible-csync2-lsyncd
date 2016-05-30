@@ -1,0 +1,4 @@
+- hosts: front
+  become: true
+  roles:
+    - { role: ansible-csync2-lsyncd }

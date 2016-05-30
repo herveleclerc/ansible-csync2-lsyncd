@@ -1,13 +1,12 @@
 ---
-# defaults file for ansible-lsyncd-cluster
+# defaults file for ansible-csync2-lsyncd
 
 # Desired number of inotify watches in the kernel. Should be more then the number of files and folders you want to be kept in sync
 lsyncd_max_user_watches: 4194304
 
 # The folders you want to keep in sync
 lsyncd_directories: 
-  - /var/www/html/img
-  - /var/www/html/cache
-
+  - /var/www/html
+  
 csync2_key_path: "/etc/csync2.key"
 

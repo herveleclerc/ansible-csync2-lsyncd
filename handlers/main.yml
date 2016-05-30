@@ -5,7 +5,6 @@
   ignore_errors: true
   notify: restart lsyncd
   
-
 - name: restart lsyncd
   service:
     name: lsyncd
