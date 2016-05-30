@@ -13,5 +13,5 @@ group {{ inventory_hostname }}
   include {{ directory }};
   {% endfor -%}
   exclude *~ .*;
-  auto none;
+  auto younger;
 }
