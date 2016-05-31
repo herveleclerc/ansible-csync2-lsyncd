@@ -18,6 +18,11 @@
   command: /usr/sbin/csync2 -k "{{ csync2_key_path }}"
   notify: restart csync2
   when: not keyfile.stat.exists and "{{ inventory_hostname }}" == "{{ groups['front'][0] }}"
+
+- name: Stop lsyncd
+  service:
+    name: lsyncd
+    state: stopped
     
 - name: Create lsync paths
   file:
@@ -32,7 +37,7 @@
     src: lsyncd.conf.j2
     dest: /etc/lsyncd/lsyncd.conf.lua
     force: yes
-  notify: restart lsyncd
+
   
 - name: Place csync2 global config
   template:
@@ -59,7 +64,7 @@
 - name: Fetch all conf file
   fetch: 
     src: "{{ item.path }}"
-    dest: tmp/ 
+    dest: tmp/
     flat: yes
   with_items: "{{ cfiles.files }}"
   
@@ -70,14 +75,16 @@
     - tmp/csync2_*
   notify: 
     - restart csync2
-    - restart lsyncd
 
 - name: Copy key on all nodes not 0
   copy: src=tmp/csync2.key dest=/etc/
   when: not "{{ inventory_hostname }}" == "{{ groups['front'][0] }}"
   notify: 
     - restart csync2
-    - restart lsyncd
+
+- name: Start lsyncd
+  command: lsyncd -insist /etc/lsyncd/lsyncd.conf.lua
+
 
 - name: Adjust the maximum amount of inotify watches. If needed
   lineinfile:
