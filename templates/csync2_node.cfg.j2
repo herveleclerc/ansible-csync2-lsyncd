@@ -12,6 +12,6 @@ group {{ inventory_hostname }}
   {% for directory in lsyncd_directories -%}
   include {{ directory }};
   {% endfor -%}
-  exclude *~ .*;
+ 
   auto younger;
 }

@@ -8,6 +8,6 @@ group web
   {% for directory in lsyncd_directories -%}
   include {{ directory }};
   {% endfor -%}
-  exclude *~ .*;
+ 
   auto younger;
 }
