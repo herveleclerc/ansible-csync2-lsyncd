@@ -85,7 +85,6 @@
 - name: Start lsyncd
   command: lsyncd -insist /etc/lsyncd/lsyncd.conf.lua
 
-
 - name: Adjust the maximum amount of inotify watches. If needed
   lineinfile:
     backup: yes
